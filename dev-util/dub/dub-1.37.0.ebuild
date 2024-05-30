@@ -91,7 +91,7 @@ src_compile() {
 		ewarn "precaution."
 		ewarn ""
 		ewarn "See also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114171"
-		dlang-filter-dflags "gdc*" "-march=native"
+		dlang-filter-dflags gdc "-march=native"
 	fi
 
 	local imports=source versions="DubApplication DubUseCurl"
@@ -154,7 +154,7 @@ src_test() {
 	# See https://bugs.gentoo.org/921581 we have to remove -op (preserve
 	# source path for output files) from the flags lest the sandbox
 	# trips us up. This shouldn't be a problem anymore with dlang-single.
-	dlang-filter-dflags "*" "--op" "-op"
+	dlang-filter-dflags ldc "--op" "-op"
 
 	# Append -Wno-error or equivalent
 	DCFLAGS+=" $(dlang_get_wno_error_flag)"

@@ -119,7 +119,7 @@ src_configure() {
 		ewarn "from your flags."
 		ewarn "See: https://github.com/libmir/mir-ion/pull/46"
 	fi
-	dlang-filter-dflags "ldc2*" "-mcpu=native"
+	dlang-filter-dflags ldc "-mcpu=native"
 
 	# See https://issues.dlang.org/show_bug.cgi?id=24406 and
 	# https://github.com/Pure-D/serve-d/issues/360
@@ -128,7 +128,7 @@ src_configure() {
 		ewarn "Optimizations will be turned off for this build with dmd"
 		ewarn "See: https://github.com/Pure-D/serve-d/issues/360"
 	fi
-	dlang-filter-dflags "dmd*" "-O*"
+	dlang-filter-dflags dmd "-O*"
 }
 
 src_compile() {

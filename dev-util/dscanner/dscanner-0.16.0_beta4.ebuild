@@ -63,7 +63,7 @@ src_compile() {
 		# Fixed for >=sys-devel/gcc-13.2.1_p20240330
 		ewarn '-march=native has been removed from your flags.'
 		ewarn 'See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114171'
-		dlang-filter-dflags "gdc*" "-march=native"
+		dlang-filter-dflags gdc "-march=native"
 	fi
 
 	if use debug; then

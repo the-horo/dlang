@@ -266,21 +266,33 @@ test_is "_dlang_impl_matches ldc2-1.32 2.102" 0
 eoutdent
 
 tbegin "simple dlang-filter-dflags"
-EDC=dmd-2.105
 DMDFLAGS='-O --color -mcpu=native'
-dlang-filter-dflags "dmd*" "--col*"
-[[ "${DMDFLAGS}" == "-O -mcpu=native" ]]
+unset DCFLAGS
+dlang-filter-dflags dmd "--col*"
+[[ ${DMDFLAGS} == "-O -mcpu=native" ]] &&
+	[[ ! -v DCFLAGS ]]
 tend $?
 
 tbegin "propagation of flag changes done by dlang-filter-dflags"
 EDC=gdc-12
 GDCFLAGS='-march=native -O2 -pipe'
-_dlang_export "${EDC}" DCFLAGS DMDW_DCFLAGS
-dlang-filter-dflags "gdc*" "-march=native"
-[[ "${GDCFLAGS}" == "-O2 -pipe" ]] &&
-	[[ "${DCFLAGS}" == "-O2 -pipe" ]] &&
-	[[ "${DMDW_DCFLAGS}" == "-q,-O2 -q,-pipe" ]]
+_dlang_export "${EDC}" DCFLAGS
+dlang-filter-dflags gdc "-march=native"
+[[ ${GDCFLAGS} == "-O2 -pipe" ]] &&
+	[[ ${DCFLAGS} == "-O2 -pipe" ]] &&
+	[[ $(dlang_get_dmdw_dcflags) == "-q,-O2 -q,-pipe" ]]
 tend $?
+
+tbegin "dlang-filter-dflags works with empty DCFLAGS"
+EDC=ldc2-1_36
+LDCFLAGS='-O -d-debug'
+DCFLAGS=
+dlang-filter-dflags ldc "-O*"
+[[ ${LDCFLAGS} == "-d-debug" ]] &&
+	[[ ${DCFLAGS} == ${LDCFLAGS} ]] &&
+	[[ $(dlang_get_dmdw_dcflags) == ${LDCFLAGS} ]]
+tend $?
+
 
 tbegin "dlang_get_abi_bits"
 assert_eq $(dlang_get_abi_bits x86) 32

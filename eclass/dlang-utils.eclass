@@ -649,65 +649,51 @@ dlang_get_ldflags() {
 }
 
 # @FUNCTION: dlang-filter-dflags
-# @USAGE: <pattern> <flags>
+# @USAGE: <compiler> <flags>
 # @DESCRIPTION:
-# Remove particular <flags> from {DMD,GDC,LDC}FLAGS based on
-# <pattern> and also from {DMDW_,}DCFLAGS if they are set.
-# <flags> accept shell globs.
-#
-# For the syntax of <pattern> please see _dlang_impl_matches.
-# Note that you will probably want to use globbing for the pattern
-# and restrict to one of the three compilers, e.g. "dmd*", "gdc*".
+# Remove particular <flags> from {DMD,GDC,LDC}FLAGS based on <compiler>
+# and also from DCFLAGS if it is set.  <flags> accept shell globs.
+# <compiler> can be either dmd, gdc, or ldc.
 #
 # Example:
 # @CODE
 # DMDFLAGS="-a -b -c -d -e -ff"
-# dlang-filter-dflags "dmd*" -e
+# dlang-filter-dflags dmd -e
 # echo "${DMDFLAGS}" # "-a -b -c -d -ff"
 # @CODE
 #
 # @CODE
 # DCFLAGS="-a -b -c -d -e -ff"
-# dlang-filter-dflags '*' '-?'
+# dlang-filter-dflags gdc '-?'
 # echo "${DCFLAGS}" # "-ff"
+# echo "$(dlang_get_dmdw_dcflags)" # "-q,-ff"
 # @CODE
 #
 # @CODE
 # LDCFLAGS='-O -O1 -flag -O3'
-# dlang-filter-dflags 'ldc*' '-O*'
+# dlang-filter-dflags ldc '-O*'
 # echo "${LDCFLAGS}" # "-flag"
 # @CODE
 dlang-filter-dflags() {
-	local pattern="${1}"
+	local compiler="${1}"
 	shift
 
-	_dlang_verify_patterns "${pattern}"
+	[[ ${compiler} == @(dmd|gdc|ldc) ]] || die "Unknown compiler ${compiler}"
 
-	# One implementation from each compiler, the
-	# version doesn't matter.
-	local impl
-	for impl in ldc2-1.32 dmd-2.102 gdc-12; do
-		if _dlang_impl_matches "${impl}" "${pattern}"; then
-			local flagVar="${impl::3}" # either dmd, gdc or ldc
-			flagVar="${flagVar^^}FLAGS" # {DMD,GDC,LDC}FLAGS
+	local flagVar="${compiler}" # either dmd, gdc or ldc
+	flagVar="${flagVar^^}FLAGS" # {DMD,GDC,LDC}FLAGS
 
-			# Taken from _filter-var from flag-o-matic.eclass
-			local x f new=()
-			for f in ${!flagVar}; do
-				for x; do
-					[[ ${f} == ${x} ]] && continue 2
-				done
-				new+=( "${f}" )
-			done
-
-			export ${flagVar}="${new[*]}"
-		fi
+	# Taken from _filter-var from flag-o-matic.eclass
+	local x f new=()
+	for f in ${!flagVar}; do
+		for x; do
+			[[ ${f} == ${x} ]] && continue 2
+		done
+		new+=( "${f}" )
 	done
+	export ${flagVar}="${new[*]}"
 
-	# If the flags are set, udpate them.
-	for v in {DMDW_,}DCFLAGS; do
-		[[ ${v} ]] && _dlang_export "${v}"
-	done
+	[[ -v DCFLAGS ]] && _dlang_export DCFLAGS
 
 	return 0
 }
